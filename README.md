@@ -1,29 +1,28 @@
 Description
 ===========
 
-Installs and configures MySQL client or server.
+Installs and configures CDH4 with YARN on a Single Linux Node in Pseudo-distributed mode.
 
 Requirements
 ============
 
-Chef 0.10.10+.
-
 Platform
 --------
 
-* Debian, Ubuntu
-* CentOS, Red Hat, Fedora
-* Mac OS X (Using homebrew)
+* Ubuntu
 
-Tested on:
+Tested on a vagrant box http://files.vagrantup.com/precise64.box
 
-* Debian 5.0, 6.0
-* Ubuntu 10.04-12.04
-* CentOS 5.5-5.8, 6.2-6.3
-* Mac OS X 10.7.2
+Links
+=====
 
-See TESTING.md for information about running tests in Opscode's Test
-Kitchen.
+* http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH4/latest/CDH4-Quick-Start/cdh4qs_topic_3_3.html
 
-Cookbooks
----------
+License and Author
+==================
+
+- Author:: Pavel Mitin (<mitin.pavel@gmail.com>)
+
+Copyright 2013 Pavel Mitin
+
+Licensed under the MIT License (MIT).
