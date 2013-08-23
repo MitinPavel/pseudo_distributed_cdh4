@@ -23,16 +23,37 @@ user "hdfs" do
   gid "hdfs"
 end
 
-directory "/var/lib/hadoop-hdfs/cache/hdfs/dfs/name" do
-  owner "hdfs"
-  group "hdfs"
-  mode 0775
-  recursive true
-  action :create
+namenode_dir =      "/var/lib/hadoop-hdfs/cache/hdfs/dfs/name"
+namesecondary_dir = "/var/lib/hadoop-hdfs/cache/hdfs/dfs/namesecondary"
+data_dir =          "/var/lib/hadoop-hdfs/cache/hdfs/dfs/data"
+[namenode_dir, namesecondary_dir, data_dir].each do |dir|
+  directory dir do
+    owner "hdfs"
+    group "hdfs"
+    mode 0775
+    recursive true
+    action :create
+  end
 end
 
 execute "format namenode" do
   command "hdfs namenode -format"
   user "hdfs"
   action :run
+  only_if { [namenode_dir, namesecondary_dir].all? { |dir| ::Dir["#{dir}/*"].empty? } }
+end
+
+#execute "start hdfs" do
+#  command "for x in `cd /etc/init.d ; ls hadoop-hdfs-*` ; do service $x start ; done"
+#  user "root"
+#  action :run
+#end
+
+%w(datanode namenode secondarynamenode).each do |node|
+  execute "start hdfs #{node}" do
+    command "service hadoop-hdfs-#{node} start"
+    user "root"
+    action :run
+    #not_if { ::File.exists?("/run/hadoop-hdfs/hadoop-hdfs-#{node}.pid") }
+  end
 end

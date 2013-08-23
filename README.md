@@ -30,7 +30,6 @@ Vagrant setup example
       config.vm.network :forwarded_port, guest: 50070, host: 50070  
       config.vm.network :forwarded_port, guest: 50075, host: 50075  
     
-    
       config.vm.provision :chef_solo do |chef|
         chef.add_recipe "apt"
         chef.add_recipe "java"
