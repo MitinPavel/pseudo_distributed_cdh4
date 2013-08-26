@@ -40,20 +40,15 @@ execute "format namenode" do
   command "hdfs namenode -format"
   user "hdfs"
   action :run
-  only_if { [namenode_dir, namesecondary_dir].all? { |dir| ::Dir["#{dir}/*"].empty? } }
+  only_if { ::Dir["#{namenode_dir}/*"].empty? }
 end
-
-#execute "start hdfs" do
-#  command "for x in `cd /etc/init.d ; ls hadoop-hdfs-*` ; do service $x start ; done"
-#  user "root"
-#  action :run
-#end
 
 %w(datanode namenode secondarynamenode).each do |node|
   execute "start hdfs #{node}" do
     command "service hadoop-hdfs-#{node} start"
     user "root"
     action :run
-    #not_if { ::File.exists?("/run/hadoop-hdfs/hadoop-hdfs-#{node}.pid") }
+    #only_if { `pidof hadoop-hdfs-#{node}` == '' }
   end
 end
+
