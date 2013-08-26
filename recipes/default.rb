@@ -50,14 +50,9 @@ end
     command "service hadoop-hdfs-#{node} start"
     user "root"
     action :run
-    only_if { `pgrep -u #{hdfs_user} -f hadoop-hdfs-#{node}` == '' }
+    not_if { `sudo jps`.match(/#{node}/i) }
   end
 end
-#vagrant@precise64:~$ sudo jps
-#9022 NameNode
-#9436 Jps
-#9121 SecondaryNameNode
-#8935 DataNode
 
 execute "create tmp dir" do
   command "sudo -u #{hdfs_user} hadoop fs -mkdir /tmp && sudo -u #{hdfs_user} hadoop fs -chmod -R 1777 /tmp"
