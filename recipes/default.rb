@@ -64,7 +64,7 @@ hadoop = "sudo -u #{hdfs_user} hadoop "
 
 execute "create tmp dir" do
   to_execute = [
-      "fs  -mkdir /tmp",
+      "fs -mkdir /tmp",
       "fs -chmod -R 1777 /tmp"
   ]
   command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
@@ -76,10 +76,9 @@ end
 execute "create staging dir" do
   to_execute = [
     "fs -mkdir /tmp/hadoop-yarn/staging",
-    "fs -chmod -R 1777 /tmp/hadoop-yarn/staging",
-    "fs -chown -R mapred:mapred /tmp/hadoop-yarn/staging"
+    "fs -chmod -R 1777 /tmp/hadoop-yarn/staging"
   ]
-  command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
+  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
   only_if { `#{hadoop} fs -ls /tmp/hadoop-yarn` == '' &&  `#{hadoop} fs -ls /tmp/hadoop-yarn/staging` == '' }
@@ -87,14 +86,26 @@ end
 
 execute "create done_intermediate dir" do
   to_execute = [
-      "fs -mkdir /tmp/hadoop-yarn/staging/history/done_intermediate",
-      "fs -chmod -R 1777 /tmp/hadoop-yarn/staging/history/done_intermediate"
+      "fs -mkdir                  /tmp/hadoop-yarn/staging/history/done_intermediate",
+      "fs -chmod -R 1777          /tmp/hadoop-yarn/staging/history/done_intermediate",
+      "fs -chown -R mapred:mapred /tmp/hadoop-yarn/staging"
   ]
-  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
+  command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
   only_if do
     `#{hadoop} fs -ls /tmp/hadoop-yarn/staging/history` == '' &&
     `#{hadoop} fs -ls /tmp/hadoop-yarn/staging/history/done_intermediate` == ''
   end
+end
+
+execute "create /var/log/hadoop-yarn dir" do
+  to_execute = [
+      "fs -mkdir /var/log/hadoop-yarn",
+      "fs -chown yarn:mapred /var/log/hadoop-yarn"
+  ]
+  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
+  user "root"
+  action :run
+  only_if { `#{hadoop} fs -ls /var/log/hadoop-yarn` == '' }
 end
