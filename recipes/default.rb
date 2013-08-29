@@ -1,4 +1,5 @@
 hdfs_user = "hdfs"
+mapred_user = "mapred"
 
 deb_file_name = "cdh4-repository_1.0_all.deb"
 
@@ -20,9 +21,14 @@ end
 
 package "hadoop-0.20-conf-pseudo"
 
-user "hdfs" do
+user hdfs_user do
   supports :manage_home => true
-  gid "hdfs"
+  gid hdfs_user
+end
+
+user mapred_user do
+  supports :manage_home => true
+  gid mapred_user
 end
 
 namenode_dir =      "/var/lib/hadoop-hdfs/cache/hdfs/dfs/name"
@@ -54,16 +60,41 @@ end
   end
 end
 
+hadoop = "sudo -u #{hdfs_user} hadoop "
+
 execute "create tmp dir" do
-  command "sudo -u #{hdfs_user} hadoop fs -mkdir /tmp && sudo -u #{hdfs_user} hadoop fs -chmod -R 1777 /tmp"
+  to_execute = [
+      "fs  -mkdir /tmp",
+      "fs -chmod -R 1777 /tmp"
+  ]
+  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
-  only_if { `sudo -u #{hdfs_user} hadoop fs -ls /tmp` == '' }
+  only_if { `#{hadoop} fs -ls /tmp` == '' }
 end
 
 execute "create staging dir" do
-  command "sudo -u #{hdfs_user} hadoop fs -mkdir /tmp/hadoop-yarn/staging && sudo -u #{hdfs_user} hadoop fs -chmod -R 1777 /tmp/hadoop-yarn/staging"
+  to_execute = [
+    "fs -mkdir /tmp/hadoop-yarn/staging",
+    "fs -chmod -R 1777 /tmp/hadoop-yarn/staging",
+    "fs -chown -R mapred:mapred /tmp/hadoop-yarn/staging"
+  ]
+  command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
-  only_if { `sudo -u #{hdfs_user} hadoop fs -ls /tmp/hadoop-yarn` == '' &&  `sudo -u #{hdfs_user} hadoop fs -ls /tmp/hadoop-yarn/staging` == '' }
+  only_if { `#{hadoop} fs -ls /tmp/hadoop-yarn` == '' &&  `#{hadoop} fs -ls /tmp/hadoop-yarn/staging` == '' }
+end
+
+execute "create done_intermediate dir" do
+  to_execute = [
+      "fs -mkdir /tmp/hadoop-yarn/staging/history/done_intermediate",
+      "fs -chmod -R 1777 /tmp/hadoop-yarn/staging/history/done_intermediate"
+  ]
+  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
+  user "root"
+  action :run
+  only_if do
+    `#{hadoop} fs -ls /tmp/hadoop-yarn/staging/history` == '' &&
+    `#{hadoop} fs -ls /tmp/hadoop-yarn/staging/history/done_intermediate` == ''
+  end
 end
