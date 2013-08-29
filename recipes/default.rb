@@ -58,14 +58,12 @@ execute "create tmp dir" do
   command "sudo -u #{hdfs_user} hadoop fs -mkdir /tmp && sudo -u #{hdfs_user} hadoop fs -chmod -R 1777 /tmp"
   user "root"
   action :run
+  only_if { `sudo -u #{hdfs_user} hadoop fs -ls /tmp` == '' }
 end
 
 execute "create staging dir" do
   command "sudo -u #{hdfs_user} hadoop fs -mkdir /tmp/hadoop-yarn/staging && sudo -u #{hdfs_user} hadoop fs -chmod -R 1777 /tmp/hadoop-yarn/staging"
   user "root"
   action :run
+  only_if { `sudo -u #{hdfs_user} hadoop fs -ls /tmp/hadoop-yarn` == '' &&  `sudo -u #{hdfs_user} hadoop fs -ls /tmp/hadoop-yarn/staging` == '' }
 end
-
-
-
-
