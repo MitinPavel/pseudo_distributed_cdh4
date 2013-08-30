@@ -62,8 +62,8 @@ end
 
 hadoop = "sudo -u #{hdfs_user} hadoop "
 
-#TODO Isn't the resource redundant? 'execute "create staging dir"' creates /tmp anyway.
-execute "create tmp dir" do
+#TODO Isn't the resource redundant? 'execute "create /tmp/hadoop-yarn/staging/"' creates /tmp anyway.
+execute "create /tmp/" do
   to_execute = [
       "fs -mkdir /tmp",
       "fs -chmod -R 1777 /tmp"
@@ -74,7 +74,7 @@ execute "create tmp dir" do
   not_if { %x(#{hadoop} fs -test -e /tmp) and $?.success? }
 end
 
-execute "create staging dir" do
+execute "create /tmp/hadoop-yarn/staging/" do
   to_execute = [
     "fs -mkdir /tmp/hadoop-yarn/staging",
     "fs -chmod -R 1777 /tmp/hadoop-yarn/staging"
@@ -85,7 +85,19 @@ execute "create staging dir" do
   not_if { %x(#{hadoop} fs -test -e /tmp/hadoop-yarn/staging) and $?.success? }
 end
 
-execute "create done_intermediate dir" do
+execute "create /var/lib/hadoop-hdfs/cache/mapred/mapred/system/" do
+  to_execute = [
+      "fs -mkdir                  /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
+      "fs -chmod -R 1777          /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
+      "fs -chown -R mapred:mapred /var/lib/hadoop-hdfs/cache/mapred"
+  ]
+  command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
+  user "root"
+  action :run
+  not_if { %x(#{hadoop} fs -test -e /var/lib/hadoop-hdfs/cache/mapred/mapred/system) and $?.success? }
+end
+
+execute "create /tmp/hadoop-yarn/staging/history/done_intermediate/" do
   to_execute = [
       "fs -mkdir                  /tmp/hadoop-yarn/staging/history/done_intermediate",
       "fs -chmod -R 1777          /tmp/hadoop-yarn/staging/history/done_intermediate",
@@ -97,7 +109,7 @@ execute "create done_intermediate dir" do
   not_if { %x(#{hadoop} fs -test -e /tmp/hadoop-yarn/staging/history/done_intermediate) and $?.success? }
 end
 
-execute "create /var/log/hadoop-yarn dir" do
+execute "create /var/log/hadoop-yarn/" do
   to_execute = [
       "fs -mkdir /var/log/hadoop-yarn",
       "fs -chown yarn:mapred /var/log/hadoop-yarn"
@@ -106,4 +118,13 @@ execute "create /var/log/hadoop-yarn dir" do
   user "root"
   action :run
   not_if { %x(#{hadoop} fs -test -e /var/log/hadoop-yarn) and $?.success? }
+end
+
+%w(jobtracker tasktracker).each do |node|
+  execute "start mapreduce #{node}" do
+    command "service hadoop-0.20-mapreduce-#{node} start"
+    user "root"
+    action :run
+    not_if { `sudo jps`.match(/#{node}/i) }
+  end
 end
