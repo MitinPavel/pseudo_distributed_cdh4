@@ -62,6 +62,7 @@ end
 
 hadoop = "sudo -u #{hdfs_user} hadoop "
 
+#TODO Isn't the resource redundant? 'execute "create staging dir"' creates /tmp anyway.
 execute "create tmp dir" do
   to_execute = [
       "fs -mkdir /tmp",
@@ -70,7 +71,7 @@ execute "create tmp dir" do
   command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
-  only_if { `#{hadoop} fs -ls /tmp` == '' }
+  not_if { %x(#{hadoop} fs -test -e /tmp) and $?.success? }
 end
 
 execute "create staging dir" do
@@ -81,7 +82,7 @@ execute "create staging dir" do
   command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
-  only_if { `#{hadoop} fs -ls /tmp/hadoop-yarn` == '' &&  `#{hadoop} fs -ls /tmp/hadoop-yarn/staging` == '' }
+  not_if { %x(#{hadoop} fs -test -e /tmp/hadoop-yarn/staging) and $?.success? }
 end
 
 execute "create done_intermediate dir" do
@@ -93,10 +94,7 @@ execute "create done_intermediate dir" do
   command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
-  only_if do
-    `#{hadoop} fs -ls /tmp/hadoop-yarn/staging/history` == '' &&
-    `#{hadoop} fs -ls /tmp/hadoop-yarn/staging/history/done_intermediate` == ''
-  end
+  not_if { %x(#{hadoop} fs -test -e /tmp/hadoop-yarn/staging/history/done_intermediate) and $?.success? }
 end
 
 execute "create /var/log/hadoop-yarn dir" do
@@ -107,5 +105,5 @@ execute "create /var/log/hadoop-yarn dir" do
   command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
   action :run
-  only_if { `#{hadoop} fs -ls /var/log/hadoop-yarn` == '' }
+  not_if { %x(#{hadoop} fs -test -e /var/log/hadoop-yarn) and $?.success? }
 end
