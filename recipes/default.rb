@@ -3,11 +3,9 @@ mapred_user = "mapred"
 
 deb_file_name = "cdh4-repository_1.0_all.deb"
 
-execute 'download CDH4 package' do
-  command "wget http://archive.cloudera.com/cdh4/one-click-install/precise/amd64/#{deb_file_name}"
-  cwd "/tmp"
-  action :run
-  not_if { ::File.exists?("/tmp/#{deb_file_name}")}
+remote_file "/tmp/#{deb_file_name}" do
+  source "http://archive.cloudera.com/cdh4/one-click-install/precise/amd64/#{deb_file_name}"
+  action :create_if_missing
 end
 
 dpkg_package 'cdh4-repository' do
