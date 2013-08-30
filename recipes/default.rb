@@ -87,9 +87,9 @@ end
 
 execute "create /var/lib/hadoop-hdfs/cache/mapred/mapred/system/" do
   to_execute = [
-      "fs -mkdir                  /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
-      "fs -chmod -R 1777          /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
-      "fs -chown -R mapred:mapred /var/lib/hadoop-hdfs/cache/mapred"
+    "fs -mkdir                  /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
+    "fs -chmod -R 1777          /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
+    "fs -chown -R mapred:mapred /var/lib/hadoop-hdfs/cache/mapred"
   ]
   command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
@@ -99,9 +99,9 @@ end
 
 execute "create /tmp/hadoop-yarn/staging/history/done_intermediate/" do
   to_execute = [
-      "fs -mkdir                  /tmp/hadoop-yarn/staging/history/done_intermediate",
-      "fs -chmod -R 1777          /tmp/hadoop-yarn/staging/history/done_intermediate",
-      "fs -chown -R mapred:mapred /tmp/hadoop-yarn/staging"
+    "fs -mkdir                  /tmp/hadoop-yarn/staging/history/done_intermediate",
+    "fs -chmod -R 1777          /tmp/hadoop-yarn/staging/history/done_intermediate",
+    "fs -chown -R mapred:mapred /tmp/hadoop-yarn/staging"
   ]
   command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
@@ -111,8 +111,8 @@ end
 
 execute "create /var/log/hadoop-yarn/" do
   to_execute = [
-      "fs -mkdir /var/log/hadoop-yarn",
-      "fs -chown yarn:mapred /var/log/hadoop-yarn"
+    "fs -mkdir /var/log/hadoop-yarn",
+    "fs -chown yarn:mapred /var/log/hadoop-yarn"
   ]
   command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
   user "root"
