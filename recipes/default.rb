@@ -51,12 +51,9 @@ execute "format namenode" do
   only_if { ::Dir["#{namenode_dir}/*"].empty? }
 end
 
-%w(datanode namenode secondarynamenode).each do |node|
-  execute "start hdfs #{node}" do
-    command "service hadoop-hdfs-#{node} start"
-    user "root"
-    action :run
-    not_if { `sudo jps`.match(/#{node}/i) }
+%w(datanode namenode secondarynamenode).each do |name|
+  service "hadoop-hdfs-#{name}" do
+    action :start
   end
 end
 
@@ -120,11 +117,8 @@ execute "create /var/log/hadoop-yarn/" do
   not_if { %x(#{hadoop} fs -test -e /var/log/hadoop-yarn) and $?.success? }
 end
 
-%w(jobtracker tasktracker).each do |node|
-  execute "start mapreduce #{node}" do
-    command "service hadoop-0.20-mapreduce-#{node} start"
-    user "root"
-    action :run
-    not_if { `sudo jps`.match(/#{node}/i) }
+%w(jobtracker tasktracker).each do |name|
+  service "hadoop-0.20-mapreduce-#{name}" do
+    action :start
   end
 end
