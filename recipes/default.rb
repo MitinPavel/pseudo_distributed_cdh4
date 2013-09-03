@@ -55,64 +55,27 @@ end
   end
 end
 
-hadoop = "sudo -u #{hdfs_user} hadoop "
-
-#TODO Isn't the resource redundant? 'execute "create /tmp/hadoop-yarn/staging/"' creates /tmp anyway.
-execute "create /tmp/" do
-  to_execute = [
-      "fs -mkdir /tmp",
-      "fs -chmod -R 1777 /tmp"
-  ]
-  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
-  user "root"
-  action :run
-  not_if { %x(#{hadoop} fs -test -e /tmp) and $?.success? }
+%w(/tmp/hadoop-yarn/staging
+   /var/lib/hadoop-hdfs/cache/mapred/mapred/system
+   /tmp/hadoop-yarn/staging/history/done_intermediate
+   /var/log/hadoop-yarn).each do |dir|
+  pseudo_distributed_cdh4_hdfs_dir "create #{dir}" do
+    dir_name dir
+    hadoop_user hdfs_user
+    chmod "1777"
+  end
 end
 
-execute "create /tmp/hadoop-yarn/staging/" do
-  to_execute = [
-    "fs -mkdir /tmp/hadoop-yarn/staging",
-    "fs -chmod -R 1777 /tmp/hadoop-yarn/staging"
-  ]
-  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
-  user "root"
-  action :run
-  not_if { %x(#{hadoop} fs -test -e /tmp/hadoop-yarn/staging) and $?.success? }
-end
-
-execute "create /var/lib/hadoop-hdfs/cache/mapred/mapred/system/" do
-  to_execute = [
-    "fs -mkdir                  /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
-    "fs -chmod -R 1777          /var/lib/hadoop-hdfs/cache/mapred/mapred/system",
-    "fs -chown -R mapred:mapred /var/lib/hadoop-hdfs/cache/mapred"
-  ]
-  command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
-  user "root"
-  action :run
-  not_if { %x(#{hadoop} fs -test -e /var/lib/hadoop-hdfs/cache/mapred/mapred/system) and $?.success? }
-end
-
-execute "create /tmp/hadoop-yarn/staging/history/done_intermediate/" do
-  to_execute = [
-    "fs -mkdir                  /tmp/hadoop-yarn/staging/history/done_intermediate",
-    "fs -chmod -R 1777          /tmp/hadoop-yarn/staging/history/done_intermediate",
-    "fs -chown -R mapred:mapred /tmp/hadoop-yarn/staging"
-  ]
-  command [hadoop, hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
-  user "root"
-  action :run
-  not_if { %x(#{hadoop} fs -test -e /tmp/hadoop-yarn/staging/history/done_intermediate) and $?.success? }
-end
-
-execute "create /var/log/hadoop-yarn/" do
-  to_execute = [
-    "fs -mkdir /var/log/hadoop-yarn",
-    "fs -chown yarn:mapred /var/log/hadoop-yarn"
-  ]
-  command [hadoop, hadoop].zip(to_execute).map(&:join).join(' && ')
-  user "root"
-  action :run
-  not_if { %x(#{hadoop} fs -test -e /var/log/hadoop-yarn) and $?.success? }
+[
+  ["mapred:mapred", "/var/lib/hadoop-hdfs/cache/mapred/mapred/system/"],
+  ["mapred:mapred", "/tmp/hadoop-yarn/staging/"],
+  ["yarn:mapred",   "/var/log/hadoop-yarn/"]
+].each do |user_and_group, dir|
+  execute "chown #{dir}" do
+    command "sudo -u #{hdfs_user} hadoop fs -chown -R #{user_and_group} #{dir}"
+    user "root"
+    action :run
+  end
 end
 
 %w(jobtracker tasktracker).each do |name|
