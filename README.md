@@ -1,7 +1,11 @@
+_Play with Hadoop_
+
 Description
 ===========
 
-Installs and configures CDH4 with YARN on a Single Linux Node in Pseudo-distributed mode.
+
+
+Installs and configures 4th version of Cloudera’s Distribution Including Apache Hadoop (CDH4) with YARN on a Single Linux Node in Pseudo-distributed mode.
 
 Requirements
 ============
